@@ -8,8 +8,9 @@ import {
   getContextualResources,
   getRepoTreeFromGitHub,
   getGitHubContextualResources,
+  getYoutubeVideos,
   learnRateLimiter
-} from '../controllers/learncontroller.js'
+} from '../controllers/learnController.js'
 
 const router = express.Router()
 
@@ -21,6 +22,7 @@ router.get('/stream', streamChanges)
 router.post('/compress', compressSelection)
 router.get('/contextual', learnRateLimiter, getContextualResources)
 router.get('/github-contextual', learnRateLimiter, getGitHubContextualResources)
+router.get('/youtube-videos', learnRateLimiter, getYoutubeVideos)
 
 export default router
 

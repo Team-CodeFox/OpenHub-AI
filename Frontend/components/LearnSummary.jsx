@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,38 @@ import {
 } from 'lucide-react'
 
 const LearnSummary = ({ detectedTechs, repoInfo, contextualResources }) => {
+  const [youtubeVideos, setYoutubeVideos] = useState([])
+  const [loadingVideos, setLoadingVideos] = useState(false)
+  const [videoError, setVideoError] = useState(null)
+
+  // Fetch YouTube videos based on detected technologies
+  useEffect(() => {
+    if (detectedTechs.length === 0) return
+
+    const fetchYoutubeVideos = async () => {
+      setLoadingVideos(true)
+      setVideoError(null)
+      
+      try {
+        const techQuery = detectedTechs.join(' ')
+        const response = await fetch(`http://localhost:5001/api/learn/youtube-videos?technologies=${encodeURIComponent(techQuery)}&max=6`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch YouTube videos')
+        }
+        
+        const data = await response.json()
+        setYoutubeVideos(data.videos || [])
+      } catch (error) {
+        console.error('Error fetching YouTube videos:', error)
+        setVideoError(error.message)
+      } finally {
+        setLoadingVideos(false)
+      }
+    }
+
+    fetchYoutubeVideos()
+  }, [detectedTechs])
   // Generate learning insights
   const getLearningInsights = () => {
     const insights = []
@@ -224,6 +256,67 @@ const LearnSummary = ({ detectedTechs, repoInfo, contextualResources }) => {
               </div>
             </div>
           )}
+
+          {/* YouTube Learning Videos */}
+          <div className="space-y-3">
+            <h4 className="text-white font-medium flex items-center">
+              <ExternalLink className="w-4 h-4 mr-2 text-red-400" />
+              🎥 YouTube Learning Videos
+            </h4>
+            {loadingVideos ? (
+              <div className="text-center py-4">
+                <div className="w-6 h-6 border-2 border-red-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-gray-400 text-sm">Loading videos...</p>
+              </div>
+            ) : videoError ? (
+              <div className="text-center py-4">
+                <p className="text-red-400 text-sm mb-2">Failed to load videos</p>
+                <p className="text-gray-500 text-xs">{videoError}</p>
+              </div>
+            ) : youtubeVideos.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3">
+                {youtubeVideos.map((video, index) => (
+                  <div key={index} className="p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-16 h-12 rounded object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-white font-medium text-sm line-clamp-2 mb-1">
+                          {video.title}
+                        </h5>
+                        <p className="text-gray-400 text-xs mb-2">{video.channel}</p>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="text-xs bg-red-500/20 text-red-400 border-red-500/30">
+                            Video
+                          </Badge>
+                          <span className="text-gray-500 text-xs">
+                            {new Date(video.publishedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(video.url, '_blank')}
+                        className="border-red-500/30 text-red-400 hover:bg-red-500/20 flex-shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-400 text-sm">No videos found for this tech stack</p>
+              </div>
+            )}
+          </div>
 
           {/* Learning Resources */}
           {learningResources.length > 0 && (

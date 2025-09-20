@@ -1201,3 +1201,189 @@ export const createIssueBranch = async (req, res) => {
     })
   }
 }
+
+/**
+ * Stars a repository for the authenticated user
+ * Body: { repoFullName: string }
+ */
+export const starRepository = async (req, res) => {
+  const token = req.cookies.github_token
+  const { repoFullName } = req.body
+
+  if (!token) {
+    return res.status(401).json({ error: 'Not authenticated: missing token cookie' })
+  }
+
+  if (!repoFullName || !repoFullName.includes('/')) {
+    return res.status(400).json({ error: 'repoFullName is required (owner/repo)' })
+  }
+
+  try {
+    // Normalize repo name
+    const normalizedRepoName = String(repoFullName)
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/\/+$/g, '')
+
+    const [owner, repo] = normalizedRepoName.split('/')
+
+    // Star the repository
+    const response = await axios.put(`https://api.github.com/user/starred/${owner}/${repo}`, {}, {
+      headers: { 
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    })
+
+    if (response.status === 204) {
+      res.json({ 
+        success: true, 
+        message: `Successfully starred ${owner}/${repo}`,
+        starred: true 
+      })
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`)
+    }
+
+  } catch (error) {
+    console.error('[starRepository] Error:', error.message)
+    const status = error.response?.status || 500
+    const ghMessage = error.response?.data?.message
+
+    if (status === 404) {
+      res.status(404).json({ error: 'Repository not found', details: 'The specified repository does not exist or is not accessible.' })
+    } else if (status === 403) {
+      res.status(403).json({ error: 'Access denied', details: 'You do not have permission to star this repository.' })
+    } else {
+      res.status(status).json({ 
+        error: 'Failed to star repository', 
+        details: ghMessage || error.message 
+      })
+    }
+  }
+}
+
+/**
+ * Unstars a repository for the authenticated user
+ * Body: { repoFullName: string }
+ */
+export const unstarRepository = async (req, res) => {
+  const token = req.cookies.github_token
+  const { repoFullName } = req.body
+
+  if (!token) {
+    return res.status(401).json({ error: 'Not authenticated: missing token cookie' })
+  }
+
+  if (!repoFullName || !repoFullName.includes('/')) {
+    return res.status(400).json({ error: 'repoFullName is required (owner/repo)' })
+  }
+
+  try {
+    // Normalize repo name
+    const normalizedRepoName = String(repoFullName)
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/\/+$/g, '')
+
+    const [owner, repo] = normalizedRepoName.split('/')
+
+    // Unstar the repository
+    const response = await axios.delete(`https://api.github.com/user/starred/${owner}/${repo}`, {
+      headers: { 
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    })
+
+    if (response.status === 204) {
+      res.json({ 
+        success: true, 
+        message: `Successfully unstarred ${owner}/${repo}`,
+        starred: false 
+      })
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`)
+    }
+
+  } catch (error) {
+    console.error('[unstarRepository] Error:', error.message)
+    const status = error.response?.status || 500
+    const ghMessage = error.response?.data?.message
+
+    if (status === 404) {
+      res.status(404).json({ error: 'Repository not found', details: 'The specified repository does not exist or is not accessible.' })
+    } else if (status === 403) {
+      res.status(403).json({ error: 'Access denied', details: 'You do not have permission to unstar this repository.' })
+    } else {
+      res.status(status).json({ 
+        error: 'Failed to unstar repository', 
+        details: ghMessage || error.message 
+      })
+    }
+  }
+}
+
+/**
+ * Checks if a repository is starred by the authenticated user
+ * Query: { repoFullName: string }
+ */
+export const checkStarStatus = async (req, res) => {
+  const token = req.cookies.github_token
+  const { repoFullName } = req.query
+
+  if (!token) {
+    return res.status(401).json({ error: 'Not authenticated: missing token cookie' })
+  }
+
+  if (!repoFullName || !repoFullName.includes('/')) {
+    return res.status(400).json({ error: 'repoFullName query param is required (owner/repo)' })
+  }
+
+  try {
+    // Normalize repo name
+    const normalizedRepoName = String(repoFullName)
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/\/+$/g, '')
+
+    const [owner, repo] = normalizedRepoName.split('/')
+
+    // Check if repository is starred
+    const response = await axios.get(`https://api.github.com/user/starred/${owner}/${repo}`, {
+      headers: { 
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    })
+
+    // If we get here, the repository is starred (204 would be the expected response)
+    res.json({ 
+      success: true, 
+      starred: true,
+      message: `${owner}/${repo} is starred` 
+    })
+
+  } catch (error) {
+    const status = error.response?.status || 500
+    
+    if (status === 404) {
+      // Repository is not starred
+      res.json({ 
+        success: true, 
+        starred: false,
+        message: `${req.query.repoFullName} is not starred` 
+      })
+    } else {
+      console.error('[checkStarStatus] Error:', error.message)
+      const ghMessage = error.response?.data?.message
+      res.status(status).json({ 
+        error: 'Failed to check star status', 
+        details: ghMessage || error.message 
+      })
+    }
+  }
+}
