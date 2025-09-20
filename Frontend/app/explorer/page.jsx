@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Github, Sparkles, Code, GitBranch, Users, Zap, ArrowRight, Bot, FileCode, Search, Star, GitFork, ExternalLink, Loader2, ChevronRight, ChevronDown, File, Folder, MessageCircle, BookOpen, Trophy, Target, Send, X, Minimize2, Maximize2, GripVertical } from 'lucide-react'
+import { Github, Sparkles, Code, GitBranch, Users, Zap, ArrowRight, Bot, FileCode, Search, Star, GitFork, ExternalLink, Loader2, ChevronRight, ChevronDown, File, Folder, MessageCircle, BookOpen, Trophy, Target, Send, X, Minimize2, Maximize2, GripVertical, Workflow } from 'lucide-react'
 import Link from 'next/link'
 import IssueAnalysis from '@/components/IssueAnalysis'
 import ProjectSummary from '@/components/ProjectSummary'
@@ -19,6 +19,8 @@ import CodeViewSummary from '@/components/CodeViewSummary'
 import IssuesSummary from '@/components/IssuesSummary'
 import LearnSummary from '@/components/LearnSummary'
 import AISummary from '@/components/AISummary'
+import FlowchartView from '@/components/FlowchartView'
+import WelcomeMessage from '@/components/WelcomeMessage'
 
 export default function Explorer() {
   const searchParams = useSearchParams()
@@ -56,6 +58,8 @@ export default function Explorer() {
   const [aiLoading, setAiLoading] = useState({})
   const [contextualLanguage, setContextualLanguage] = useState('en')
   const [contextualResources, setContextualResources] = useState([])
+  const [isStarred, setIsStarred] = useState(false)
+  const [starLoading, setStarLoading] = useState(false)
   
   // Issue analysis state
   const [selectedIssue, setSelectedIssue] = useState(null)
@@ -165,8 +169,24 @@ export default function Explorer() {
         setRepoLoading(false);
       }
     };
+
+    const checkStarStatus = async () => {
+      try {
+        const res = await fetch(`http://localhost:5001/api/github/star-status?repoFullName=${encodeURIComponent(repoFullName)}`, {
+          credentials: 'include',
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setIsStarred(data.starred);
+        }
+      } catch (error) {
+        console.error('Error checking star status:', error);
+      }
+    };
     
     fetchRepoInfo();
+    checkStarStatus();
   }, [repoFullName])
 
   useEffect(() => {
@@ -322,13 +342,60 @@ export default function Explorer() {
     }
   }
 
+  const handleStarToggle = async () => {
+    if (!repoFullName) return;
+    
+    setStarLoading(true);
+    
+    try {
+      const endpoint = isStarred ? 'star' : 'star';
+      const method = isStarred ? 'DELETE' : 'POST';
+      
+      const response = await fetch(`http://localhost:5001/api/github/${endpoint}`, {
+        method: method,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repoFullName: repoFullName
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsStarred(!isStarred);
+        
+        // Update repo info with new star count
+        if (repoInfo) {
+          setRepoInfo(prev => ({
+            ...prev,
+            stargazers_count: isStarred ? prev.stargazers_count - 1 : prev.stargazers_count + 1
+          }));
+        }
+        
+        console.log(data.message);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to toggle star:', errorData.error);
+        alert(`Failed to ${isStarred ? 'unstar' : 'star'} repository: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error toggling star:', error);
+      alert(`Error ${isStarred ? 'unstarring' : 'starring'} repository: ${error.message}`);
+    } finally {
+      setStarLoading(false);
+    }
+  };
+
   const renderFileTree = (items, level = 0) => {
     return items.map((item, index) => (
-      <div key={index} style={{ marginLeft: `${level * 16}px` }}>
+      <div key={index} className="select-none">
         <div 
           className={`flex items-center space-x-2 p-2 rounded-lg hover:bg-blue-500/10 cursor-pointer transition-colors group ${
             selectedFile === item.path ? 'bg-blue-500/20 border-l-2 border-blue-400' : ''
           }`}
+          style={{ marginLeft: `${level * 16}px` }}
           onClick={() => {
             if (item.type === 'folder') {
               toggleFolder(item.path)
@@ -360,30 +427,40 @@ export default function Explorer() {
                 })
             }
           }}
-          // Removed hover calls to avoid noise; click-based only
         >
           {item.type === 'folder' ? (
             expandedFolders.has(item.path) ? 
-              <ChevronDown className="w-4 h-4 text-gray-400" /> : 
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-          ) : null}
-          
-          {item.type === 'folder' ? (
-            <Folder className="w-4 h-4 text-blue-400" />
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" /> : 
+              <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
           ) : (
-            <File className="w-4 h-4 text-gray-400" />
+            <div className="w-4 h-4 flex-shrink-0" /> // Spacer for alignment
           )}
           
-          <span className="text-white text-sm flex-1">{item.name}</span>
-          {Array.isArray(item.technologies) && item.technologies.slice(0,2).map((t) => (
-            <span key={t} className="text-[10px] px-1 py-0.5 rounded bg-white/10 text-gray-300 border border-white/10">{t}</span>
-          ))}
+          {item.type === 'folder' ? (
+            <Folder className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          ) : (
+            <File className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          )}
+          
+          <span className="text-white text-sm flex-1 truncate">{item.name}</span>
+          {Array.isArray(item.technologies) && item.technologies.length > 0 && (
+            <div className="flex flex-wrap gap-1 flex-shrink-0">
+              {item.technologies.slice(0, 2).map((t) => (
+                <span key={t} className="text-[10px] px-1 py-0.5 rounded bg-white/10 text-gray-300 border border-white/10 whitespace-nowrap">
+                  {t}
+                </span>
+              ))}
+              {item.technologies.length > 2 && (
+                <span className="text-[10px] px-1 py-0.5 rounded bg-white/5 text-gray-400 border border-white/5">
+                  +{item.technologies.length - 2}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         
-        {/* No inline tooltip; summaries will show in Overview + Sidebar */}
-        
-        {item.type === 'folder' && expandedFolders.has(item.path) && item.children && (
-          <div>
+        {item.type === 'folder' && expandedFolders.has(item.path) && item.children && item.children.length > 0 && (
+          <div className="transition-all duration-200 ease-in-out">
             {renderFileTree(item.children, level + 1)}
           </div>
         )}
@@ -526,44 +603,21 @@ export default function Explorer() {
         <ScrollArea className="flex-1 px-4">
           <div className="space-y-1 pb-4">
             {loading ? (
-              <div className="text-gray-400 text-sm">Loading tree...</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                <span className="text-gray-400 text-sm">Loading tree...</span>
+              </div>
+            ) : treeItems.length === 0 ? (
+              <div className="text-center py-8">
+                <Folder className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">No files found</p>
+              </div>
             ) : (
               renderFileTree(treeItems)
             )}
           </div>
         </ScrollArea>
 
-        {/* Onboarding Progress */}
-        <div className="p-4 border-t border-white/10 flex-shrink-0">
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white text-sm font-medium">Onboarding Progress</span>
-                <Trophy className="w-4 h-4 text-yellow-400" />
-              </div>
-              <Progress value={75} className="mb-2" />
-              <div className="text-xs text-gray-400">3 of 4 steps completed</div>
-              <div className="mt-2 space-y-1">
-                <div className="flex items-center text-xs text-green-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  Explored file structure
-                </div>
-                <div className="flex items-center text-xs text-green-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  Read AI summaries
-                </div>
-                <div className="flex items-center text-xs text-green-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  Asked AI questions
-                </div>
-                <div className="flex items-center text-xs text-gray-400">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-                  Find first issue to contribute
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {/* Left Panel Drag Handle */}
@@ -626,7 +680,7 @@ export default function Explorer() {
         {/* Content Area */}
         <div className="flex-1 flex min-h-0">
           {/* Center Panel */}
-          <div className="flex-1 p-6 min-w-0 max-w-full">
+          <div className="flex-1 p-6 min-w-0">
             <Tabs defaultValue="overview" className="h-full flex flex-col">
               <TabsList className="bg-white/5 border-white/10 flex-shrink-0">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
@@ -634,6 +688,10 @@ export default function Explorer() {
                 </TabsTrigger>
                 <TabsTrigger value="code" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
                   Code View
+                </TabsTrigger>
+                <TabsTrigger value="flowchart" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
+                  <Workflow className="w-4 h-4 mr-2" />
+                  Flowchart
                 </TabsTrigger>
                 <TabsTrigger value="issues" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
                   Issues {issues.length > 0 && `(${issues.length})`}
@@ -648,7 +706,13 @@ export default function Explorer() {
 
               <TabsContent value="overview" className="mt-6 flex-1 min-h-0">
                 <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4 max-w-full">
+                  <div className="space-y-6 pr-4">
+                    {/* Welcome Message */}
+                    <WelcomeMessage
+                      repoInfo={repoInfo}
+                      detectedTechs={detectedTechs}
+                    />
+
                     {/* Project Summary */}
                     <ProjectSummary
                       repoInfo={repoInfo}
@@ -659,20 +723,13 @@ export default function Explorer() {
                       treeItems={treeItems}
                       detectedTechs={detectedTechs}
                     />
-
-                    {/* Repository Overview */}
-                    <RepositoryOverview
-                      treeItems={treeItems}
-                      repoInfo={repoInfo}
-                      detectedTechs={detectedTechs}
-                    />
                   </div>
                 </ScrollArea>
               </TabsContent>
 
               <TabsContent value="code" className="mt-6 flex-1 min-h-0">
                 <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4 max-w-full">
+                  <div className="space-y-6 pr-4">
                     <CodeViewSummary
                       treeItems={treeItems}
                       detectedTechs={detectedTechs}
@@ -739,9 +796,40 @@ export default function Explorer() {
                 </ScrollArea>
               </TabsContent>
 
+              <TabsContent value="flowchart" className="mt-6 flex-1 min-h-0">
+                <FlowchartView
+                  treeItems={treeItems}
+                  repoInfo={repoInfo}
+                  detectedTechs={detectedTechs}
+                  selectedFile={selectedFile}
+                  repoFullName={repoFullName}
+                  onFileSelect={(fileId) => {
+                    // Map flowchart node IDs to actual file paths
+                    const fileMap = {
+                      'auth-controller': 'backend/controllers/authController.js',
+                      'github-controller': 'backend/controllers/githubController.js',
+                      'learn-controller': 'backend/controllers/learnController.js',
+                      'github-api': 'backend/utils/githubApi.js',
+                      'issue-analyzer': 'backend/utils/issueAnalyzer.js',
+                      'tech-detect': 'backend/utils/techDetect.js',
+                      'app-layout': 'Frontend/app/layout.jsx',
+                      'explorer-page': 'Frontend/app/explorer/page.jsx',
+                      'dashboard-page': 'Frontend/app/dashboard/page.jsx',
+                      'auth-callback': 'Frontend/app/auth/callback/page.jsx',
+                      'ui-components': 'Frontend/components',
+                      'hooks': 'Frontend/hooks'
+                    }
+                    const filePath = fileMap[fileId]
+                    if (filePath) {
+                      setSelectedFile(filePath)
+                    }
+                  }}
+                />
+              </TabsContent>
+
               <TabsContent value="issues" className="mt-6 flex-1 min-h-0">
                 <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4 max-w-full">
+                  <div className="space-y-6 pr-4">
                     <IssuesSummary
                       issues={issues}
                       repoInfo={repoInfo}
@@ -948,7 +1036,7 @@ export default function Explorer() {
 
               <TabsContent value="learn" className="mt-6 flex-1 min-h-0">
                 <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4 max-w-full">
+                  <div className="space-y-6 pr-4">
                     <LearnSummary
                       detectedTechs={detectedTechs}
                       repoInfo={repoInfo}
@@ -961,7 +1049,7 @@ export default function Explorer() {
 
               <TabsContent value="ai-summary" className="mt-6 flex-1 min-h-0">
                 <ScrollArea className="h-full">
-                  <div className="pr-4 max-w-full">
+                  <div className="pr-4">
                     <AISummary
                       selectedNode={selectedNode}
                       selectedFile={selectedFile}
@@ -1022,17 +1110,36 @@ export default function Explorer() {
                     <CardTitle className="text-white text-sm">Quick Actions</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start border-white/20 text-white">
-                      <GitBranch className="w-4 h-4 mr-2" />
-                      Create Branch
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start border-white/20 text-white">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full justify-start border-white/20 text-white hover:bg-purple-500/20 hover:border-purple-500/50"
+                      onClick={() => {
+                        if (repoInfo?.html_url) {
+                          window.open(`${repoInfo.html_url}/fork`, '_blank')
+                        } else {
+                          alert('Repository URL not available')
+                        }
+                      }}
+                    >
                       <GitFork className="w-4 h-4 mr-2" />
                       Fork Repository
                     </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start border-white/20 text-white">
-                      <Star className="w-4 h-4 mr-2" />
-                      Star Project
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className={`w-full justify-start border-white/20 text-white hover:bg-yellow-500/20 hover:border-yellow-500/50 ${
+                        isStarred ? 'bg-yellow-500/20 border-yellow-500/50' : ''
+                      }`}
+                      onClick={handleStarToggle}
+                      disabled={starLoading}
+                    >
+                      {starLoading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Star className={`w-4 h-4 mr-2 ${isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                      )}
+                      {isStarred ? 'Unstar Project' : 'Star Project'}
                     </Button>
                   </CardContent>
                 </Card>

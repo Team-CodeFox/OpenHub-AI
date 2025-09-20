@@ -634,6 +634,135 @@ export const getGitHubContextualResources = async (req, res) => {
   }
 }
 
+export const getYoutubeVideos = async (req, res) => {
+  try {
+    const { technologies, max = '6', language = 'en' } = req.query
+    
+    if (!technologies) {
+      return res.status(400).json({ error: 'technologies query parameter is required' })
+    }
+
+    const techArray = String(technologies).split(',').map(t => t.trim()).filter(Boolean)
+    const videoQuery = `${techArray.join(' ')} tutorial programming`
+    
+    let videos = []
+    
+    if (YT_API_KEY) {
+      try {
+        const searchResults = await youtubeSearch({ 
+          q: videoQuery, 
+          type: 'video', 
+          language, 
+          max: Number(max) 
+        })
+        
+        videos = searchResults.map(v => ({
+          id: v.id.videoId,
+          title: v.snippet.title,
+          description: v.snippet.description,
+          url: `https://www.youtube.com/watch?v=${v.id.videoId}`,
+          thumbnail: v.snippet.thumbnails.medium?.url || v.snippet.thumbnails.default?.url,
+          channel: v.snippet.channelTitle,
+          publishedAt: v.snippet.publishedAt,
+          duration: v.snippet.duration || 'Unknown'
+        }))
+      } catch (error) {
+        console.error('YouTube API error:', error)
+        // Fallback to curated videos
+        videos = getCuratedVideosForTech(techArray)
+      }
+    } else {
+      // Use curated fallback when no API key
+      videos = getCuratedVideosForTech(techArray)
+    }
+
+    res.json({ 
+      videos, 
+      technologies: techArray,
+      total: videos.length,
+      source: YT_API_KEY ? 'youtube-api' : 'curated'
+    })
+  } catch (error) {
+    console.error('[getYoutubeVideos] error:', error)
+    res.status(500).json({ error: error.message })
+  }
+}
+
+function getCuratedVideosForTech(techArray) {
+  const curatedVideos = []
+  
+  techArray.forEach(tech => {
+    const lowerTech = tech.toLowerCase()
+    
+    if (lowerTech.includes('react')) {
+      curatedVideos.push({
+        id: 'TNhaISOUy6Q',
+        title: 'React Hooks Course - freeCodeCamp',
+        description: 'Learn React hooks with this comprehensive tutorial',
+        url: 'https://www.youtube.com/watch?v=TNhaISOUy6Q',
+        thumbnail: 'https://img.youtube.com/vi/TNhaISOUy6Q/mqdefault.jpg',
+        channel: 'freeCodeCamp.org',
+        publishedAt: '2020-01-01T00:00:00Z',
+        duration: '2:25:48'
+      })
+    }
+    
+    if (lowerTech.includes('next') || lowerTech.includes('nextjs')) {
+      curatedVideos.push({
+        id: 'Hiabp1GY8fA',
+        title: 'Next.js 13 App Router Crash Course',
+        description: 'Complete Next.js tutorial with App Router',
+        url: 'https://www.youtube.com/watch?v=Hiabp1GY8fA',
+        thumbnail: 'https://img.youtube.com/vi/Hiabp1GY8fA/mqdefault.jpg',
+        channel: 'Traversy Media',
+        publishedAt: '2023-01-01T00:00:00Z',
+        duration: '1:30:00'
+      })
+    }
+    
+    if (lowerTech.includes('typescript')) {
+      curatedVideos.push({
+        id: '30LWjhZzg50',
+        title: 'TypeScript Full Course - freeCodeCamp',
+        description: 'Complete TypeScript tutorial for beginners',
+        url: 'https://www.youtube.com/watch?v=30LWjhZzg50',
+        thumbnail: 'https://img.youtube.com/vi/30LWjhZzg50/mqdefault.jpg',
+        channel: 'freeCodeCamp.org',
+        publishedAt: '2022-01-01T00:00:00Z',
+        duration: '5:20:00'
+      })
+    }
+    
+    if (lowerTech.includes('node') || lowerTech.includes('nodejs')) {
+      curatedVideos.push({
+        id: 'fBNz5xF-Kx4',
+        title: 'Node.js Crash Course - Traversy Media',
+        description: 'Learn Node.js fundamentals',
+        url: 'https://www.youtube.com/watch?v=fBNz5xF-Kx4',
+        thumbnail: 'https://img.youtube.com/vi/fBNz5xF-Kx4/mqdefault.jpg',
+        channel: 'Traversy Media',
+        publishedAt: '2021-01-01T00:00:00Z',
+        duration: '1:45:00'
+      })
+    }
+    
+    if (lowerTech.includes('tailwind') || lowerTech.includes('css')) {
+      curatedVideos.push({
+        id: 'dFgzHOX84xQ',
+        title: 'Tailwind CSS From Scratch - Traversy Media',
+        description: 'Learn Tailwind CSS utility-first approach',
+        url: 'https://www.youtube.com/watch?v=dFgzHOX84xQ',
+        thumbnail: 'https://img.youtube.com/vi/dFgzHOX84xQ/mqdefault.jpg',
+        channel: 'Traversy Media',
+        publishedAt: '2021-01-01T00:00:00Z',
+        duration: '2:15:00'
+      })
+    }
+  })
+  
+  return uniqueItems(curatedVideos)
+}
+
 // Optional: basic rate limiter (attach in routes)
 export const learnRateLimiter = rateLimit({
   windowMs: 60_000,
