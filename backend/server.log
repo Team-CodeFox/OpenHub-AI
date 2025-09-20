@@ -1,0 +1,146 @@
+[dotenv@17.2.1] injecting env (9) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Server running on port 5001
+🔥 GitHub callback received with code: YES
+🔥 GitHub callback received with code: YES
+No package.json found
+No tsconfig.json found
+📁 Found 5 code files to analyze
+✅ Analyzed file: DevElevate/Client/eslint.config.js
+✅ Analyzed file: DevElevate/Client/postcss.config.js
+✅ Analyzed file: DevElevate/Client/src/App.tsx
+✅ Analyzed file: DevElevate/Client/src/api/adminApi.ts
+✅ Analyzed file: DevElevate/Client/src/api/axiosinstance.ts
+📊 Total files analyzed: 5
+📋 Package.json: Missing
+📖 README: Found
+⚙️ TSConfig: Missing
+🔍 Calling OpenRouter API for comprehensive repository analysis...
+📝 Repository: abhisek2004/Dev-Elevate
+📄 Language: TypeScript
+⭐ Stars: 44
+📁 Files analyzed: 5
+📡 OpenRouter API Response Status: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+❌ OpenRouter AI analysis failed, using enhanced fallback: OpenRouter API failed: 401
+🔍 Full error details: Error: OpenRouter API failed: 401
+    at analyzeRepo (file:///Users/sriman/Desktop/Projects/OpenHub%20AI(Git)/OpenHub-AI/backend/controllers/githubController.js:1000:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+No package.json found
+No tsconfig.json found
+📁 Found 5 code files to analyze
+✅ Analyzed file: DevElevate/Client/eslint.config.js
+✅ Analyzed file: DevElevate/Client/postcss.config.js
+✅ Analyzed file: DevElevate/Client/src/App.tsx
+✅ Analyzed file: DevElevate/Client/src/api/adminApi.ts
+✅ Analyzed file: DevElevate/Client/src/api/axiosinstance.ts
+📊 Total files analyzed: 5
+📋 Package.json: Missing
+📖 README: Found
+⚙️ TSConfig: Missing
+🔍 Calling OpenRouter API for comprehensive repository analysis...
+📝 Repository: abhisek2004/Dev-Elevate
+📄 Language: TypeScript
+⭐ Stars: 44
+📁 Files analyzed: 5
+📡 OpenRouter API Response Status: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+❌ OpenRouter AI analysis failed, using enhanced fallback: OpenRouter API failed: 401
+🔍 Full error details: Error: OpenRouter API failed: 401
+    at analyzeRepo (file:///Users/sriman/Desktop/Projects/OpenHub%20AI(Git)/OpenHub-AI/backend/controllers/githubController.js:1000:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+🔥 GitHub callback received with code: YES
+[githubCallback] Token exchange response: {
+  error: 'bad_verification_code',
+  error_description: 'The code passed is incorrect or expired.',
+  error_uri: 'https://docs.github.com/apps/managing-oauth-apps/troubleshooting-oauth-app-access-token-request-errors/#bad-verification-code'
+}
+[githubCallback] OAuth Error: 500 No access token received from GitHub
+🔥 GitHub callback received with code: YES
+[githubCallback] Token exchange response: {
+  error: 'bad_verification_code',
+  error_description: 'The code passed is incorrect or expired.',
+  error_uri: 'https://docs.github.com/apps/managing-oauth-apps/troubleshooting-oauth-app-access-token-request-errors/#bad-verification-code'
+}
+[githubCallback] OAuth Error: 500 No access token received from GitHub
+🔥 GitHub callback received with code: YES
+❌ OpenRouter folder API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI folder analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter folder API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI folder analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+No package.json found
+No tsconfig.json found
+📁 Found 5 code files to analyze
+✅ Analyzed file: Frontend/.next/server/app/auth/callback/page.js
+✅ Analyzed file: Frontend/.next/server/app/auth/callback/page_client-reference-manifest.js
+✅ Analyzed file: Frontend/.next/server/app/dashboard/page.js
+✅ Analyzed file: Frontend/.next/server/app/dashboard/page_client-reference-manifest.js
+📊 Total files analyzed: 4
+📋 Package.json: Missing
+📖 README: Found
+⚙️ TSConfig: Missing
+🔍 Calling OpenRouter API for comprehensive repository analysis...
+📝 Repository: srimanh/OpenHub-AI
+📄 Language: JavaScript
+⭐ Stars: 1
+📁 Files analyzed: 4
+📡 OpenRouter API Response Status: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+❌ OpenRouter AI analysis failed, using enhanced fallback: OpenRouter API failed: 401
+🔍 Full error details: Error: OpenRouter API failed: 401
+    at analyzeRepo (file:///Users/sriman/Desktop/Projects/OpenHub%20AI(Git)/OpenHub-AI/backend/controllers/githubController.js:1000:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter folder API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI folder analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter folder API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI folder analysis failed, using rule-based analysis: OpenRouter API failed: 401
+🔥 GitHub callback received with code: YES
+🔥 GitHub callback received with code: YES
+🔥 GitHub callback received with code: YES
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+No package.json found
+No tsconfig.json found
+📁 Found 5 code files to analyze
+✅ Analyzed file: bugflow-frontend/eslint.config.js
+✅ Analyzed file: bugflow-frontend/node_modules/.vite/deps/chunk-2ZET3HRN.js
+✅ Analyzed file: bugflow-frontend/node_modules/.vite/deps/chunk-IYDKXRZQ.js
+✅ Analyzed file: bugflow-frontend/node_modules/.vite/deps/chunk-S3Z6QACX.js
+✅ Analyzed file: bugflow-frontend/node_modules/.vite/deps/react-dom.js
+📊 Total files analyzed: 5
+📋 Package.json: Missing
+📖 README: Found
+⚙️ TSConfig: Missing
+🔍 Calling OpenRouter API for comprehensive repository analysis...
+📝 Repository: srimanh/BugFlow-AI
+📄 Language: Java
+⭐ Stars: 0
+📁 Files analyzed: 5
+📡 OpenRouter API Response Status: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+❌ OpenRouter AI analysis failed, using enhanced fallback: OpenRouter API failed: 401
+🔍 Full error details: Error: OpenRouter API failed: 401
+    at analyzeRepo (file:///Users/sriman/Desktop/Projects/OpenHub%20AI(Git)/OpenHub-AI/backend/controllers/githubController.js:1000:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+❌ OpenRouter API failed: 401 {"error":{"message":"User not found.","code":401}}
+OpenRouter AI analysis failed, using rule-based analysis: OpenRouter API failed: 401
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
+[getFileContent] GitHub API error: 500 getaddrinfo ENOTFOUND api.github.com
