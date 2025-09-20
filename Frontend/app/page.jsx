@@ -1,11 +1,141 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Github, Sparkles, Code, GitBranch, Users, Zap, ArrowRight, Bot, FileCode, Search, Star, Play } from 'lucide-react'
+import { Github, Sparkles, Code, GitBranch, Users, Zap, ArrowRight, Bot, FileCode, Search, Star, Play, X } from 'lucide-react'
 import Link from 'next/link'
+
+const Popup = React.memo(function Popup({ title, content, isVisible, position, onClose }) {
+  const popupRef = useRef(null);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isVisible, onClose]);
+  
+  if (!isVisible) return null;
+
+  return (
+    <div 
+      ref={popupRef}
+      className="absolute z-50 w-80 bg-gray-900 border border-white/20 rounded-lg shadow-2xl overflow-hidden transform -translate-x-1/2 -translate-y-full -mt-2"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+    >
+      <div className="p-1 bg-gradient-to-r from-blue-500 to-purple-600">
+        <div className="flex items-center justify-between bg-gray-900 px-4 py-2">
+          <h4 className="font-semibold text-white">{title}</h4>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Close popup"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div className="p-4 text-sm text-gray-300">
+        {content}
+      </div>
+    </div>
+  );
+});
+
+const FooterSection = ({ title, items }) => {
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [activeItem, setActiveItem] = useState(null);
+  const itemRefs = useRef({});
+
+  const contentMap = {
+    'Features': 'Explore AI-powered codebase summaries, issue-to-code mapping, onboarding tours, and learning recommendations.',
+    'How it Works': 'Log in with GitHub, let our AI analyze your repo, and instantly navigate with contextual explanations.',
+    'Pricing': 'Flexible plans for individuals, teams, and enterprises. Start free and scale as your contributions grow.',
+    'API': 'Access our APIs to integrate AI-powered onboarding, semantic search, and issue mapping into your own workflows.',
+    'Integrations': 'Works seamlessly with GitHub, YouTube, learning platforms, and cloud deployment tools.',
+    'Documentation': 'Step-by-step guides to get started, API references, and advanced usage tips.',
+    'Blog': 'Insights on developer onboarding, open-source contribution, and AI in software engineering.',
+    'Tutorials': 'Hands-on walkthroughs showing how to onboard faster and contribute with impact.',
+    'Community': 'Join our growing developer community, share feedback, and collaborate on open-source projects.',
+    'Support': 'Need help? Reach out to our team or check FAQs for quick answers.',
+    'About': 'Our mission is to simplify developer onboarding and accelerate open-source collaboration with AI.',
+    'Careers': 'Join our team of innovators building the future of AI-driven developer tools.',
+    'Contact': 'Get in touch for partnerships, enterprise solutions, or general inquiries.',
+    'Privacy': 'Learn how we keep your data secure and respect your privacy.',
+    'Terms': 'Review our terms of service and contributor policies.'
+  };
+
+  const handleMouseEnter = (e, item) => {
+    const rect = itemRefs.current[item].getBoundingClientRect();
+    setPopupPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.bottom
+    });
+    setActiveItem(item);
+    setIsPopupVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Small delay to allow moving to the popup
+    setTimeout(() => {
+      if (!document.querySelector('.popup-container:hover')) {
+        setIsPopupVisible(false);
+      }
+    }, 100);
+  };
+
+  const handlePopupLeave = () => {
+    setIsPopupVisible(false);
+  };
+
+  return (
+    <div>
+      <h3 className="text-white font-semibold mb-6">{title}</h3>
+      <ul className="space-y-4">
+        {items.map((item) => (
+          <li key={item}>
+            <a 
+              href="#" 
+              className="text-gray-400 hover:text-white transition-colors relative group"
+              ref={el => itemRefs.current[item] = el}
+              onMouseEnter={(e) => handleMouseEnter(e, item)}
+              onMouseLeave={handleMouseLeave}
+            >
+              {item}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div 
+        className="popup-container" 
+        onMouseEnter={() => {}}
+        onMouseLeave={handlePopupLeave}
+      >
+        <Popup
+          title={activeItem}
+          content={contentMap[activeItem] || ''}
+          isVisible={isPopupVisible}
+          position={popupPosition}
+          onClose={() => setIsPopupVisible(false)}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
@@ -106,11 +236,25 @@ export default function LandingPage() {
             <span className="text-2xl font-bold text-white tracking-tight">OpenHub AI</span>
           </div>
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-300 hover:text-white transition-colors duration-300 relative group">
+            <a 
+              href="#features" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-gray-300 hover:text-white transition-colors duration-300 relative group cursor-pointer"
+            >
               Features
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
             </a>
-            <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors duration-300 relative group">
+            <a 
+              href="#how-it-works" 
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-gray-300 hover:text-white transition-colors duration-300 relative group cursor-pointer"
+            >
               How it Works
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full"></span>
             </a>
@@ -344,7 +488,7 @@ export default function LandingPage() {
           </div>
 
           {/* Key Features Section */}
-          <div className={`mb-24 transition-all duration-1000 delay-1100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div id="features" className={`mt-20 pt-20 -mb-4 transition-all duration-1000 delay-1100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 🚀 Key Features
@@ -436,7 +580,8 @@ export default function LandingPage() {
           </div>
 
           {/* How It Works Section */}
-          <div className={`mb-24 transition-all duration-1000 delay-1300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div id="how-it-works" className="pt-20 -mt-20">
+          <div className={`mb-24 transition-all duration-1000 delay-1200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 How It Works
@@ -491,110 +636,83 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <footer className="relative z-10 border-t border-white/10 bg-black/50 backdrop-blur-xl mt-24">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <div className="grid md:grid-cols-4 gap-12">
-                {/* Brand */}
-                <div className="md:col-span-1">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="relative bg-black border border-white/20 rounded-lg p-2">
-                        <Bot className="w-6 h-6 text-white" />
-                      </div>
+        {/* Footer */}
+        <footer className="relative z-10 border-t border-white/10 bg-black/50 backdrop-blur-xl mt-24">
+          <div className="max-w-7xl mx-auto px-6 py-16">
+            <div className="grid md:grid-cols-4 gap-12">
+              {/* Brand */}
+              <div className="md:col-span-1">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative bg-black border border-white/20 rounded-lg p-2">
+                      <Bot className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-2xl font-bold text-white">OpenHub AI</span>
                   </div>
-                  <p className="text-gray-400 mb-6 leading-relaxed">
-                    AI-powered codebase exploration and learning platform for developers worldwide.
-                  </p>
-                  <div className="flex space-x-4">
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                      <Github className="w-5 h-5" />
-                    </a>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                      </svg>
-                    </a>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                      </svg>
-                    </a>
-                  </div>
+                  <span className="text-2xl font-bold text-white">OpenHub AI</span>
                 </div>
-                
-                {/* Product */}
-                <div>
-                  <h3 className="text-white font-semibold mb-6">Product</h3>
-                  <ul className="space-y-4">
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">How it Works</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">API</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Integrations</a></li>
-                  </ul>
-                </div>
-                
-                {/* Resources */}
-                <div>
-                  <h3 className="text-white font-semibold mb-6">Resources</h3>
-                  <ul className="space-y-4">
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Community</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Support</a></li>
-                  </ul>
-                </div>
-                
-                {/* Company */}
-                <div>
-                  <h3 className="text-white font-semibold mb-6">Company</h3>
-                  <ul className="space-y-4">
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
-                    <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a></li>
-                  </ul>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  AI-powered codebase exploration and learning platform for developers worldwide.
+                </p>
+                <div className="flex space-x-4">
+                  <a 
+                    href="https://github.com/Team-CodeFox" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <Github className="w-5 h-5" />
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    </svg>
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                  </a>
                 </div>
               </div>
               
-              {/* Bottom Bar */}
-              <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-                <p className="text-gray-400 text-sm">
-                  © 2024 OpenHub AI. All rights reserved.
-                </p>
-                <div className="flex items-center space-x-6 mt-4 md:mt-0">
-                  <span className="text-gray-400 text-sm">Made with ❤️ CodeFox developers</span>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    All systems operational
-                  </Badge>
-                </div>
+              {/* Product */}
+              <FooterSection 
+                title="Product"
+                items={['Features', 'How it Works', 'Pricing', 'API', 'Integrations']}
+              />
+              
+              {/* Resources */}
+              <FooterSection 
+                title="Resources"
+                items={['Documentation', 'Blog', 'Tutorials', 'Community', 'Support']}
+              />
+              
+              {/* Company */}
+              <FooterSection 
+                title="Company"
+                items={['About', 'Careers', 'Contact', 'Privacy', 'Terms']}
+              />
+            </div>
+            
+            {/* Bottom Bar */}
+            <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-400 text-sm">
+                © 2025 OpenHub AI. All rights reserved.
+              </p>
+              <div className="flex items-center space-x-6 mt-4 md:mt-0">
+                <span className="text-gray-400 text-sm">Made with ❤️ Team CodeFox developers</span>
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                </Badge>
               </div>
             </div>
-          </footer>
-        </div>
-      </main>
-
-      {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8 z-20">
-        <div className="relative group cursor-pointer">
-          <div className="absolute inset-0 bg-blue-500 rounded-full blur-lg opacity-75 animate-pulse-glow"></div>
-          <div className="relative w-16 h-16 bg-black border-2 border-white/20 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300 group">
-            <Bot className="w-8 h-8 text-white group-hover:animate-bounce" />
           </div>
-          <div className="absolute -top-16 right-0 bg-black/90 border border-white/20 text-white px-4 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap backdrop-blur-sm">
-            Hi! I'm your AI guide 👋
-            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white/20"></div>
-          </div>
-        </div>
+        </footer>
       </div>
+    </main>
     </div>
   )
 }
