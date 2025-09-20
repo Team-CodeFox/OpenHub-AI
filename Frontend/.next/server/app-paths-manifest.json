@@ -1,0 +1,7 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/explorer/page": "app/explorer/page.js",
+  "/page": "app/page.js",
+  "/auth/callback/page": "app/auth/callback/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
+}
