@@ -32,11 +32,15 @@ import {
   Workflow,
   X,
   List,
+
   Search,
   File,
   FolderOpen,
   FolderClosed,
   Sparkles
+
+  Search
+
 } from 'lucide-react'
 
 export default function FlowchartView({ treeItems, repoInfo, detectedTechs, selectedFile, onFileSelect, repoFullName }) {
@@ -45,12 +49,16 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
   const [zoom, setZoom] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
+
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
   const [flowchartData, setFlowchartData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showFileDropdown, setShowFileDropdown] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isFullscreen, setIsFullscreen] = useState(false)
+
   const [aiDescriptions, setAiDescriptions] = useState({})
   const [loadingDescriptions, setLoadingDescriptions] = useState(false)
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false)
@@ -84,6 +92,10 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
     }
   }
 
+
+  const containerRef = useRef(null)
+
+
   // Fetch flowchart data from backend
   useEffect(() => {
     if (!repoFullName) return
@@ -105,6 +117,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
         
         if (data.success) {
           setFlowchartData(data.data)
+
           // Fetch AI descriptions for files
           const files = data.data.nodes.filter(node => node.type === 'file').map(node => ({
             path: node.path,
@@ -114,6 +127,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
           if (files.length > 0) {
             fetchAIDescriptions(files)
           }
+
         } else {
           throw new Error(data.error || 'Failed to generate flowchart')
         }
@@ -285,6 +299,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
     }
   }
 
+
   // Handle mouse down for dragging
   const handleMouseDown = (e) => {
     if (e.target.tagName === 'svg' || e.target.tagName === 'rect') {
@@ -324,6 +339,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
     }
   }, [isDraggingCanvas])
 
+
   // Handle escape key for fullscreen
   useEffect(() => {
     const handleEscape = (e) => {
@@ -350,11 +366,17 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showFileDropdown])
 
+
   const getNodeIcon = (type, isExpanded) => {
     switch (type) {
       case 'root': return <Layers className="w-5 h-5" />
       case 'directory': return isExpanded ? <FolderOpen className="w-5 h-5" /> : <FolderClosed className="w-5 h-5" />
       case 'file': return <File className="w-5 h-5" />
+
+  const getNodeIcon = (type) => {
+    switch (type) {
+      case 'root': return <Layers className="w-5 h-5" />
+
       case 'service': return <Server className="w-5 h-5" />
       case 'component': return <Code2 className="w-5 h-5" />
       default: return <FileCode className="w-5 h-5" />
@@ -364,13 +386,19 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
   const getNodeColor = (type) => {
     switch (type) {
       case 'root': return 'bg-gradient-to-r from-cyan-500 to-blue-500'
+
       case 'directory': return 'bg-gradient-to-r from-green-500 to-emerald-500'
       case 'file': return 'bg-gradient-to-r from-purple-500 to-pink-500'
       case 'service': return 'bg-gradient-to-r from-orange-500 to-red-500'
       case 'component': return 'bg-gradient-to-r from-indigo-500 to-purple-500'
+
+      case 'service': return 'bg-gradient-to-r from-green-500 to-emerald-500'
+      case 'component': return 'bg-gradient-to-r from-purple-500 to-pink-500'
+
       default: return 'bg-gradient-to-r from-gray-500 to-gray-600'
     }
   }
+
 
   // Build tree structure from nodes
   const buildTreeStructure = (nodes, connections) => {
@@ -659,6 +687,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
     return gradient[index]
   }
 
+
   const getConnectionColor = (type) => {
     switch (type) {
       case 'service': return '#10b981'
@@ -701,6 +730,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
       
       {/* Header */}
       <div className="p-4 border-b border-white/10 bg-black/20 backdrop-blur-lg">
+
         <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
           {/* Title Section */}
           <div className="flex items-center space-x-4 flex-1 min-w-0 pr-4">
@@ -709,14 +739,28 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
               <h2 className="text-xl font-semibold text-white truncate">Code Architecture Flowchart</h2>
             </div>
             <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-400 flex-shrink-0">
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Workflow className="w-6 h-6 text-cyan-400" />
+              <h2 className="text-xl font-semibold text-white">Code Architecture Flowchart</h2>
+            </div>
+            <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-400">
+
               <Bot className="w-3 h-3 mr-1" />
               AI Generated
             </Badge>
           </div>
           
+
           {/* Controls Section */}
           <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
             {/* File Dropdown */}
+
+          {/* File Dropdown */}
+          <div className="flex items-center space-x-2">
+
             <div className="relative file-dropdown">
               <Button
                 variant="outline"
@@ -769,6 +813,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
               )}
             </div>
             
+
             {/* Control Buttons */}
             <div className="flex items-center space-x-2">
               <Button
@@ -798,16 +843,55 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
               >
                 <ArrowUp className="w-4 h-4" />
               </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setZoom(Math.min(zoom + 0.1, 2))}
+              className="border-white/20 text-white"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setZoom(Math.max(zoom - 0.1, 0.5))}
+              className="border-white/20 text-white"
+            >
+              <Minus className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPosition({ x: 0, y: 0 })}
+              className="border-white/20 text-white"
+            >
+              <ArrowUp className="w-4 h-4" />
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsFullscreen(!isFullscreen)}
               className="border-white/20 text-white"
+
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
               {isFullscreen ? <X className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
             </div>
+
+            >
+              {isFullscreen ? <X className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+
           </div>
         </div>
       </div>
@@ -864,6 +948,7 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
             onWheel={handleWheel}
             style={{ background: 'radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)' }}
           >
+
             <div
               className="absolute inset-0"
               style={{
@@ -916,6 +1001,140 @@ export default function FlowchartView({ treeItems, repoInfo, detectedTechs, sele
               )}
             </div>
           </div>
+
+          <div
+            className="absolute inset-0"
+            style={{
+              transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+              transformOrigin: '0 0'
+            }}
+          >
+            {/* Connections */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+              {connections.map((conn, index) => {
+                const fromNode = nodes.find(n => n.id === conn.from)
+                const toNode = nodes.find(n => n.id === conn.to)
+                if (!fromNode || !toNode) return null
+
+                const fromX = fromNode.position.x + fromNode.size.width / 2
+                const fromY = fromNode.position.y + fromNode.size.height
+                const toX = toNode.position.x + toNode.size.width / 2
+                const toY = toNode.position.y
+
+                // Calculate better control points for smoother curves
+                const deltaY = toY - fromY
+                const deltaX = toX - fromX
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+                
+                // Dynamic control points based on distance and direction
+                const controlOffset = Math.min(50, distance * 0.3)
+                const controlY1 = fromY + controlOffset
+                const controlY2 = toY - controlOffset
+                
+                // Create a more natural curve
+                const midX = (fromX + toX) / 2
+                const midY = (fromY + toY) / 2
+
+                return (
+                  <g key={index}>
+                    <defs>
+                      <marker
+                        id={`arrowhead-${index}`}
+                        markerWidth="10"
+                        markerHeight="7"
+                        refX="9"
+                        refY="3.5"
+                        orient="auto"
+                      >
+                        <polygon
+                          points="0 0, 10 3.5, 0 7"
+                          fill={getConnectionColor(conn.type)}
+                        />
+                      </marker>
+                    </defs>
+                    <path
+                      d={`M ${fromX} ${fromY} C ${fromX} ${controlY1} ${midX} ${midY} ${toX} ${toY}`}
+                      stroke={getConnectionColor(conn.type)}
+                      strokeWidth="2"
+                      fill="none"
+                      opacity="0.7"
+                      markerEnd={`url(#arrowhead-${index})`}
+                      className="drop-shadow-sm"
+                    />
+                    {/* Connection type label */}
+                    <text
+                      x={midX}
+                      y={midY - 5}
+                      textAnchor="middle"
+                      className="text-xs fill-gray-400 pointer-events-none"
+                      style={{ fontSize: '10px' }}
+                    >
+                      {getConnectionLabel(conn.type)}
+                    </text>
+                  </g>
+                )
+              })}
+            </svg>
+
+            {/* Nodes */}
+            {nodes.map((node) => (
+              <div
+                key={node.id}
+                className={`node absolute cursor-pointer transition-all duration-200 hover:scale-105 ${
+                  selectedNode?.id === node.id ? 'ring-2 ring-cyan-400' : ''
+                }`}
+                style={{
+                  left: node.position.x,
+                  top: node.position.y,
+                  width: node.size.width,
+                  height: node.size.height
+                }}
+                onClick={() => {
+                  setSelectedNode(node)
+                  if (onFileSelect && node.type === 'component') {
+                    onFileSelect(node.id)
+                  }
+                }}
+              >
+                <Card className={`h-full ${getNodeColor(node.type)} border-white/20 shadow-lg overflow-hidden`}>
+                  <CardContent className="p-3 h-full flex flex-col justify-center min-h-0">
+                    <div className="flex items-center space-x-2 mb-1 min-w-0">
+                      {getNodeIcon(node.type)}
+                      <span className="text-white font-medium text-sm truncate flex-1">
+                        {node.label}
+                      </span>
+                    </div>
+                    <p className="text-white/80 text-xs truncate mb-2">
+                      {node.description}
+                    </p>
+                    {node.technologies && node.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-auto">
+                        {node.technologies.slice(0, 2).map((tech) => (
+                          <Badge
+                            key={tech}
+                            variant="secondary"
+                            className="text-xs bg-white/20 text-white border-white/30 whitespace-nowrap"
+                          >
+                            {tech}
+                          </Badge>
+                        ))}
+                        {node.technologies.length > 2 && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-white/10 text-white/70 border-white/20"
+                          >
+                            +{node.technologies.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+
         )}
       </div>
 

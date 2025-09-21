@@ -5,7 +5,9 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/auth.js'
 import githubRoutes from './routes/github.js'
 import learnRoutes from './routes/learn.js'
+
 import aiRoutes from './routes/ai.js'
+
 import { generateFlowchart, testFlowchart } from './controllers/flowchartController.js'
 
 // Load environment variables
@@ -47,6 +49,14 @@ console.log('- /auth')
 console.log('- /api/github')
 console.log('- /api/learn')
 console.log('- /api/ai')
+console.log('- /api/flowchart/test')
+console.log('- /api/flowchart')
+
+// Debug: Log all routes
+console.log('Registered routes:')
+console.log('- /auth')
+console.log('- /api/github')
+console.log('- /api/learn')
 console.log('- /api/flowchart/test')
 console.log('- /api/flowchart')
 
